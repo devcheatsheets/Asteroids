@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a906a06395593a409b3af91c1947f21, type: 3}
-  m_Name: SlowMo
+  m_Name: Slow-mo
   m_EditorClassIdentifier: 
   playerMotionSpeedBoost: 0
   playerRotationSpeedBoost: 0

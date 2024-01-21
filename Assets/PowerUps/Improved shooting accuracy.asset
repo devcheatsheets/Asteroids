@@ -10,12 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9a906a06395593a409b3af91c1947f21, type: 3}
-  m_Name: Motion Boost
+  m_Name: Improved shooting accuracy
   m_EditorClassIdentifier: 
-  playerMotionSpeedBoost: 50
-  playerRotationSpeedBoost: 50
-  playerShootAccuracyBoost: 0
+  playerMotionSpeedBoost: 0
+  playerRotationSpeedBoost: 0
+  playerShootAccuracyBoost: 30
   projectilesLifeTimeBoost: 0
-  shootFrequencyBoost: 0
   timeScaleBoost: 0
   effectTime: 10
