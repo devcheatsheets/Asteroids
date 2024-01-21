@@ -16,6 +16,13 @@ namespace Asteroids
         public TargetMode targetMode = TargetMode.CursorPosition;
 
         public Transform target;
+
+        private Player _player;
+
+        public void Init(Player player)
+        {
+            _player = player;
+        }
         
         /// <summary>
         /// Rotates the object towards a given point in 2D space
@@ -46,11 +53,10 @@ namespace Asteroids
                 }
                 case TargetMode.Player:
                 {
-                    var player = Player.Instance;
-                    if(player && player.gameObject.activeInHierarchy && Player.Instance.playerAttackable)
+                    if(_player && _player.gameObject.activeInHierarchy && _player.playerAttackable)
                     {
                         RotateTowards(
-                            (Vector2)Camera.main.WorldToViewportPoint(player.transform.position)
+                            (Vector2)Camera.main.WorldToViewportPoint(_player.transform.position)
                         );
                     }
                     break;

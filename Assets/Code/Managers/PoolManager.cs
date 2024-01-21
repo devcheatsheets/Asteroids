@@ -19,46 +19,9 @@ namespace Asteroids
 
         [SerializeField] private int _initialPoolSize = 10;
 
-        #region Cache
-
-        private static Dictionary<string, PoolManager> _poolManagersCache = new Dictionary<string, PoolManager>();
-
-        #endregion
-
-        /// <summary>
-        /// Returns a pool manager from the dictionary by its name
-        /// </summary>
-        /// <param name="name">Name of the pool manager as stated in the poolManagers list</param>
-        /// <returns></returns>
-        public static PoolManager GetPoolManager(string name)
+        public void Init()
         {
-            if(!_poolManagersCache.ContainsKey(name) && GameManager.Instance.Log(LogLevel.ErrorsAndWarnings))
-            {
-                Debug.LogWarning("<GameManager> A pool manager with key '" + name + "' doesn't exist in the GameManager. Please, add one before requesting.");
-            }
-            return _poolManagersCache[name];
-        }
-        
-        /// <summary>
-        /// Disable all instances in all pools
-        /// </summary>
-        public static void DisableAllPools()
-        {
-            foreach(PoolManager pm in GameObject.FindObjectsOfType<PoolManager>())
-            {
-                pm.DisableAllInstances();
-            }
-        }
-
-        /// <summary>
-        /// Add pool manager to the dictionary for 
-        /// </summary>
-        private void RegisterPoolManager()
-        {
-            if (!_poolManagersCache.ContainsKey(poolName))
-            {
-                _poolManagersCache.Add(poolName, this);
-            }
+            _pool = InitPool(_initialPoolSize);
         }
 
         /// <summary>
@@ -112,22 +75,12 @@ namespace Asteroids
         /// <summary>
         /// Disable all instances in the pool
         /// </summary>
-        private void DisableAllInstances()
+        public void DisableAllInstances()
         {
             foreach(GameObject obj in _pool)
             {
                 obj.SetActive(false);
             }
         }
-
-        #region Unity Callbacks
-
-        private void Start() 
-        {
-            _pool = InitPool(_initialPoolSize);
-            RegisterPoolManager();
-        }
-
-        #endregion
     }
 }

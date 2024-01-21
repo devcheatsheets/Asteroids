@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using Asteroids.Utility;
 using Asteroids.Scriptable;
+using System;
 
 namespace Asteroids
 {
     /// <summary>
     /// A global entry point to the general settings, vital objects and components, and general routines.
     /// </summary>
-    public class GameManager : Singleton<GameManager>
+    public class GameManager : MonoBehaviour
     {
         /// <summary>
         /// Return current score. Readonly.
@@ -24,11 +25,15 @@ namespace Asteroids
             }
         }
 
-        [Tooltip("Types of Debug.Logs that shoulds be displayed")]
-        [SerializeField] private LogLevel _logLevel;
-        
         [Tooltip("Use GamePresets to save global settings into a file and switch between them")]
         public GamePreset gamePreset;
+
+        [SerializeField] private HUDManager _hudManager;
+        [SerializeField] private SpawnManager _spawnManager;
+        [SerializeField] private Player _player;
+        [SerializeField] private LogManager _logManager;
+        [SerializeField] private PoolsManager _poolsManager;
+        [SerializeField] private Borders _borders;
 
         #region Private
         private AsteroidsState _currentGameState;
@@ -39,39 +44,43 @@ namespace Asteroids
         private Dictionary<GameState, AsteroidsState> _statesLib;
         #endregion
 
+        public Action onResetAll;
+
+        private void Init()
+        {
+            DataManager.Init(this);
+            _hudManager.Init(_logManager);
+            _poolsManager.Init(_logManager);
+            _spawnManager.Init(_logManager, this, _player, _poolsManager, _hudManager, _borders);
+            _borders.Init(_logManager);
+            _player.Init(_poolsManager, _hudManager, _borders, _logManager, this);
+        }
+
         /// <summary>
         /// Initializes dictionaries to access frequently requested objects faster.
         /// </summary>
         private void InitCache()
         {
+            var preGameState = new PreGameAsteroidsState();
+            preGameState.Init(_hudManager, _player, _spawnManager, this, _poolsManager);
+
+            var gameState = new GameAsteroidsState();
+            gameState.Init(_hudManager, _player, _spawnManager, this);
+
+            var pauseState = new PauseAsteroidsState();
+            pauseState.Init(_hudManager, _spawnManager, this);
+
+            var gameOverState = new GameOverAsteroidsState();
+            gameOverState.Init(_hudManager, _player, _spawnManager, this, _poolsManager);
+
             // Initialize the dictionary to access game states faster
             _statesLib = new Dictionary<GameState, AsteroidsState>()
             {
-                {GameState.PreGame, new PreGameAsteroidsState()},
-                {GameState.Game, new GameAsteroidsState()},
-                {GameState.Pause, new PauseAsteroidsState()},
-                {GameState.GameOver, new GameOverAsteroidsState()}
+                {GameState.PreGame, preGameState},
+                {GameState.Game, gameState},
+                {GameState.Pause, pauseState},
+                {GameState.GameOver, gameOverState}
             };
-        }
-
-        /// <summary>
-        /// Returns true or false depending on the log level defined by the User and the log level of the current message
-        /// </summary>
-        /// <param name="level">Seriousness (log level) of a message</param>
-        /// <returns></returns>
-        public bool Log(LogLevel level)
-        {
-            switch(_logLevel)
-            {
-                case LogLevel.OnlyErrors:
-                    return level == LogLevel.OnlyErrors;
-                case LogLevel.ErrorsAndWarnings:
-                    return level == LogLevel.OnlyErrors || level == LogLevel.ErrorsAndWarnings;
-                case LogLevel.All:
-                    return level == LogLevel.OnlyErrors || level == LogLevel.ErrorsAndWarnings || level == LogLevel.All;
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -80,9 +89,9 @@ namespace Asteroids
         public void ResetScore()
         {
             _currentScore = 0;
-            HUDManager.Instance.DisplayScore(currentScore);
+            _hudManager.DisplayScore(currentScore);
         }
-        
+
         /// <summary>
         /// Adds to the current score and updates HUD
         /// </summary>
@@ -90,7 +99,7 @@ namespace Asteroids
         public void AddScore(int amount)
         {
             _currentScore += amount;
-            HUDManager.Instance.DisplayScore(currentScore);
+            _hudManager.DisplayScore(currentScore);
         }
 
         /// <summary>
@@ -100,36 +109,57 @@ namespace Asteroids
         public void SetGameState(GameState newState)
         {
             // If the game state is already the same as provided by user, simply do nothing
-            if(_currentGameState != null && _currentGameState.gameState == newState)
+            if (_currentGameState != null && _currentGameState.gameState == newState)
             {
                 return;
             }
-            
-            if(_currentGameState != null)
+
+            if (_currentGameState != null)
             {
                 _currentGameState.ClearState();
             }
             _currentGameState = _statesLib[newState];
             _currentGameState.InitState();
-            
-            if(Log(LogLevel.All))
-                Debug.Log("<GameManager> Setting game state to " + _currentGameState.gameState);
-            
+
+            Debug.Log("<GameManager> Setting game state to " + _currentGameState.gameState);
+
         }
 
         #region Unity Callbacks
-        private void Start() 
+        private void Start()
         {
+            Init();
             InitCache();
             SetGameState(GameState.PreGame);
 
-            AsteroidsEvents.onResetAll += ResetScore;
+            onResetAll += ResetScore;
         }
 
-        private void Update() 
+        void OnEnable()
+        {
+            _player.onLivesEqualsZero += Player_OnLivesEqualsZero;
+        }
+
+        void OnDisable()
+        {
+            _player.onLivesEqualsZero -= Player_OnLivesEqualsZero;
+        }
+
+        private void Update()
         {
             _currentGameState.StateUpdate();
         }
+
         #endregion 
+
+        private void Player_OnLivesEqualsZero()
+        {
+            SetGameState(GameState.GameOver);
+        }
+
+        public void ResetAll()
+        {
+            onResetAll?.Invoke();
+        }
     }
 }

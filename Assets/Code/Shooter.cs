@@ -40,7 +40,18 @@ namespace Asteroids
 
         #region Private
         private float _lastShootTime = 0f;
+
+        private PoolsManager _poolsManager;
+        private Borders _borders;
+        private LogManager _logManager;
         #endregion
+
+        public void Init(PoolsManager poolsManager, Borders borders, LogManager logManager)
+        {
+            _poolsManager = poolsManager;
+            _borders = borders;
+            _logManager = logManager;
+        }
 
         /// <summary>
         /// Request a projectile from the pool, set it up and launch
@@ -49,12 +60,12 @@ namespace Asteroids
         {
             try
             {
-                var projectile = PoolManager.GetPoolManager("Projectiles").RequestInstance<Projectile>();
-                projectile.InitShooter(this);
+                var projectile = _poolsManager.GetPoolManager("Projectiles").RequestInstance<Projectile>();
+                projectile.InitShooter(this, _borders);
             }
             catch (System.Exception)
             {
-                if (GameManager.Instance.Log(LogLevel.OnlyErrors) && !PoolManager.GetPoolManager("Projectiles"))
+                if (_logManager.Log(LogLevel.OnlyErrors) && !_poolsManager.GetPoolManager("Projectiles"))
                 {
                     Debug.LogError("<GameManager> Projectiles Pool Manager is not initialized");
                 }

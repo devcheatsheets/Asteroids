@@ -9,7 +9,7 @@ namespace Asteroids
     /// <summary>
     /// Responsible for handling UI
     /// </summary>
-    public class HUDManager : Singleton<HUDManager>
+    public class HUDManager : MonoBehaviour
     {
         public GameObject preGameContainer;
         public GameObject gamePauseContainer;
@@ -25,6 +25,13 @@ namespace Asteroids
         [Space]
         public Text gameOverScoreText;
         public Text highestScoreText;
+
+        private LogManager _logManager;
+
+        public void Init(LogManager logManager)
+        {
+            _logManager = logManager;
+        }
 
         /// <summary>
         /// Update the score text with the current value of the score
@@ -43,7 +50,7 @@ namespace Asteroids
         {
             if(curLives < 0 || curLives > 5)
             {
-                if(GameManager.Instance.Log(LogLevel.ErrorsAndWarnings))
+                if(_logManager.Log(LogLevel.ErrorsAndWarnings))
                 {
                     Debug.LogWarning("<HUDManager> Invalid 'curLives' passed. Has to be between 0 and 5", gameObject);
                 }
@@ -98,7 +105,8 @@ namespace Asteroids
         /// </summary>
         public void DisplayGameOverStats()
         {
-            gameOverScoreText.text = GameManager.Instance.currentScore.ToString();
+            var gameManager = FindObjectOfType<GameManager>(); // TODO fix
+            gameOverScoreText.text = gameManager.currentScore.ToString();
             highestScoreText.text = "Highest score: " + DataManager.GetHighestScore();
         }
     }

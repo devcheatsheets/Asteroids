@@ -7,7 +7,18 @@ namespace Asteroids
     /// </summary>
     public class PauseAsteroidsState : AsteroidsState
     {
+        private HUDManager _hudManager;
+        private SpawnManager _spawnManager;
+        private GameManager _gameManager;
+
         private float _timeScale;
+
+        public void Init(HUDManager hudManager, SpawnManager spawnManager, GameManager gameManager)
+        {
+            _hudManager = hudManager;
+            _spawnManager = spawnManager;
+            _gameManager = gameManager;
+        }
         
         public PauseAsteroidsState()
         {
@@ -23,20 +34,20 @@ namespace Asteroids
         {
             _timeScale = Time.timeScale;
             Time.timeScale = 0f;
-            HUDManager.Instance.ToggleContainer(GameState.Pause);
+            _hudManager.ToggleContainer(GameState.Pause);
 
-            SpawnManager.Instance.enabled = false;
+            _spawnManager.enabled = false;
         }
 
         public override void StateUpdate()
         {
             if(Input.GetKeyDown(KeyCode.Escape))
             {
-                GameManager.Instance.SetGameState(GameState.PreGame);
+                _gameManager.SetGameState(GameState.PreGame);
             }
             if(Input.anyKeyDown && !Input.GetKeyDown(KeyCode.Escape))
             {
-                GameManager.Instance.SetGameState(GameState.Game);
+                _gameManager.SetGameState(GameState.Game);
             }
         }
     }

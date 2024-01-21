@@ -6,10 +6,11 @@ namespace Asteroids
     /// <summary>
     /// Responsible for calculating the game borders based on the camera's viewport
     /// </summary>
-    public class Borders : Singleton<Borders>
+    public class Borders : MonoBehaviour
     {
         [Tooltip("Actual border can be further than the camera's viewport")]
         public float margin = 1f;
+        private LogManager _logManager;
 
         #region Private
 
@@ -19,6 +20,11 @@ namespace Asteroids
         private float _maxY;
 
         #endregion
+
+        public void Init(LogManager logManager)
+        {
+            _logManager = logManager;
+        }
         
         /// <summary>
         /// Calculate the borders based on the camera's current viewport
@@ -28,7 +34,7 @@ namespace Asteroids
             var camera = Camera.main;
             if(!camera)
             {
-                if(GameManager.Instance.Log(LogLevel.ErrorsAndWarnings))
+                if(_logManager.Log(LogLevel.ErrorsAndWarnings))
                 {
                     Debug.LogWarning("<Borders> Add camera to the scene");
                 }

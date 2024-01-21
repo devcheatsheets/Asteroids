@@ -76,6 +76,8 @@ namespace Asteroids.Misc
         public float minRockCanExplodeSize = 1.5f;
 
         #endregion
+
+        private GameManager _gameManager;
         
         #region Cache
 
@@ -85,6 +87,14 @@ namespace Asteroids.Misc
         private RockExplode _rockExplode;
 
         #endregion
+
+        public void Init(GameManager gameManager, PoolsManager poolsManager, HUDManager hudManager, Borders borders)
+        {
+            _gameManager = gameManager;
+            rockExplode.Init(gameManager, poolsManager, hudManager, borders);
+            hittable.Init(hudManager);
+            movable.Init(borders);
+        }
         
         public void OnExplode()
         {
@@ -109,7 +119,7 @@ namespace Asteroids.Misc
                 {
                     hittable.ResetOnLivesEqualsZero();
                     hittable.onLivesEqualsZero += ()=>{
-                        GameManager.Instance.AddScore(scoreToAdd);
+                        _gameManager.AddScore(scoreToAdd);
                         gameObject.SetActive(false);
                     };
                 }
@@ -128,12 +138,12 @@ namespace Asteroids.Misc
             rockExplode.proportionLeft = 1f;
             
             movable.MakeImmuneToBorderControl(onSpawnBorderImmunityTime);
-            movable.AddForceTowardsCenter(GameManager.Instance.gamePreset.spawnedCenterTargetOffset);
+            movable.AddForceTowardsCenter(_gameManager.gamePreset.spawnedCenterTargetOffset);
             
             hittable.lives = 1;
             hittable.ResetOnLivesEqualsZero();
             hittable.onLivesEqualsZero += ()=>{
-                GameManager.Instance.AddScore(scoreToAdd);
+                _gameManager.AddScore(scoreToAdd);
             };
         }
 

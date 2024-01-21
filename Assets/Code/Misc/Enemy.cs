@@ -15,7 +15,7 @@ namespace Asteroids.Misc
         {
             get
             {
-                if(_hittable)
+                if (_hittable)
                 {
                     return _hittable;
                 }
@@ -28,12 +28,25 @@ namespace Asteroids.Misc
         {
             get
             {
-                if(_movable)
+                if (_movable)
                 {
                     return _movable;
                 }
                 _movable = GetComponent<Movable>();
                 return _movable;
+            }
+        }
+
+        public Rotateable rotateable
+        {
+            get
+            {
+                if (_rotateable)
+                {
+                    return _rotateable;
+                }
+                _rotateable = GetComponent<Rotateable>();
+                return _rotateable;
             }
         }
 
@@ -45,26 +58,40 @@ namespace Asteroids.Misc
         public float onSpawnBorderImmunityTime = 3f;
 
         #endregion
-        
+
         #region Cache
 
         private Hittable _hittable;
         private Movable _movable;
+        private Rotateable _rotateable;
 
         #endregion
 
+        private GameManager _gameManager;
+        private PoolsManager _poolsManager;
+
+        public void Init(GameManager gameManager, PoolsManager poolsManager, HUDManager hudManager, Borders borders, Player player)
+        {
+            _gameManager = gameManager;
+            _poolsManager = poolsManager;
+            hittable.Init(hudManager);
+            movable.Init(borders);
+            rotateable.Init(player);
+        }
+
         public void OnExplode()
         {
-            throw new System.NotImplementedException();
+
         }
 
         public void OnSpawned()
         {
             movable.MakeImmuneToBorderControl(onSpawnBorderImmunityTime);
             hittable.ResetOnLivesEqualsZero();
-            hittable.onLivesEqualsZero += ()=>{
-                GameManager.Instance.AddScore(scoreToAdd);
-                var explosion = PoolManager.GetPoolManager("EnemyExplosions").RequestInstance<Transform>();
+            hittable.onLivesEqualsZero += () =>
+            {
+                _gameManager.AddScore(scoreToAdd);
+                var explosion = _poolsManager.GetPoolManager("EnemyExplosions").RequestInstance<Transform>();
                 explosion.position = transform.position;
                 gameObject.SetActive(false);
             };

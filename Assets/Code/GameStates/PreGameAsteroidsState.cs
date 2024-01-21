@@ -7,6 +7,21 @@ namespace Asteroids
     /// </summary>
     public class PreGameAsteroidsState : AsteroidsState
     {
+        private HUDManager _hudManager;
+        private Player _player;
+        private SpawnManager _spawnManager;
+        private GameManager _gameManager;
+        private PoolsManager _poolsManager;
+
+        public void Init(HUDManager hudManager, Player player, SpawnManager spawnManager, GameManager gameManager, PoolsManager poolsManager)
+        {
+            _hudManager = hudManager;
+            _player = player;
+            _spawnManager = spawnManager;
+            _gameManager = gameManager;
+            _poolsManager = poolsManager;
+        }
+
         public PreGameAsteroidsState()
         {
             gameState = GameState.PreGame;
@@ -19,18 +34,18 @@ namespace Asteroids
 
         public override void InitState()
         {
-            HUDManager.Instance.ToggleContainer(gameState);
+            _hudManager.ToggleContainer(gameState);
 
-            GameManager.Instance.ResetScore();
+            _gameManager.ResetScore();
 
-            SpawnManager.Instance.enabled = false;
+            _spawnManager.enabled = false;
 
-            PoolManager.DisableAllPools();
+            _poolsManager.DisableAllPools();
 
-            Player.Instance.gameObject.SetActive(false);
-            Player.Instance.transform.position = Vector2.zero;
-            Player.Instance.ResetPlayerStats();
-            Player.Instance.hittable.ResetLives();
+            _player.gameObject.SetActive(false);
+            _player.transform.position = Vector2.zero;
+            _player.ResetPlayerStats();
+            _player.hittable.ResetLives();
 
         }
 
@@ -42,7 +57,7 @@ namespace Asteroids
             }
             if(Input.anyKeyDown && !Input.GetKeyDown(KeyCode.Escape))
             {
-                GameManager.Instance.SetGameState(GameState.Game);
+                _gameManager.SetGameState(GameState.Game);
             }
         }
     }

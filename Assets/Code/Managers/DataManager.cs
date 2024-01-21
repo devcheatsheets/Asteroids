@@ -5,8 +5,9 @@ namespace Asteroids
     /// <summary>
     /// Handles persistent data
     /// </summary>
-    public class DataManager
+    public static class DataManager
     {
+        private static GameManager _gameManager;
         private static string _highestScoreKey = "highestScore";
 
         public static int highestScore
@@ -31,12 +32,16 @@ namespace Asteroids
         /// <returns></returns>
         public static int GetHighestScore()
         {
-            var gameManager = GameManager.Instance;
-            if(gameManager.currentScore > highestScore)
+            if(_gameManager.currentScore > highestScore)
             {
-                highestScore = gameManager.currentScore;
+                highestScore = _gameManager.currentScore;
             }
             return highestScore;
+        }
+
+        public static void Init(GameManager gameManager)
+        {
+            _gameManager = gameManager;
         }
     }
 }

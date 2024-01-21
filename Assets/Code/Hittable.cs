@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.PlayerLoop;
 
 namespace Asteroids
 {
@@ -37,8 +38,14 @@ namespace Asteroids
         #region Private
 
         private int _currentLives;
+        private HUDManager _hudManager;
 
         #endregion
+
+        public void Init(HUDManager hudManager)
+        {
+            _hudManager = hudManager;
+        }
         
         /// <summary>
         /// Remove all the listeners from the onLivesEqualsZero callback
@@ -54,7 +61,7 @@ namespace Asteroids
         public void ResetLives()
         {
             _currentLives = lives;
-            HUDManager.Instance.DisplayLives(_currentLives);
+            _hudManager.DisplayLives(_currentLives);
         }
         
         /// <summary>

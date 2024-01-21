@@ -14,12 +14,25 @@ namespace Asteroids.Misc
 
         [HideInInspector] public float proportionLeft = 1f;
 
+        private GameManager _gameManager;
+        private PoolsManager _poolsManager;
+        private HUDManager _hudManager;
+        private Borders _borders;
+
+        public void Init(GameManager gameManager, PoolsManager poolsManager, HUDManager hudManager, Borders borders)
+        {
+            _gameManager = gameManager;
+            _poolsManager = poolsManager;
+            _hudManager = hudManager;
+            _borders = borders;
+        }
+
         /// <summary>
         /// Pool an explosion and move it to the object
         /// </summary>
         private void SpawnExplosion()
         {
-            var explosion = PoolManager.GetPoolManager("RockExplosions").RequestInstance<Transform>();
+            var explosion = _poolsManager.GetPoolManager("RockExplosions").RequestInstance<Transform>();
             explosion.position = transform.position;
         }
 
@@ -29,12 +42,19 @@ namespace Asteroids.Misc
         /// <param name="proportion">Size of the new piece</param>
         private void SpawnNewRockPiece(float proportion)
         {
-            var newInstance = PoolManager.GetPoolManager("Rocks").RequestInstance<Transform>();
+            var newInstance = _poolsManager.GetPoolManager("Rocks").RequestInstance<Transform>();
             newInstance.position = transform.position + (Vector3)Random.insideUnitCircle * spawnRadius;
+
+            var rock = newInstance.GetComponent<Rock>();
+            if(rock)
+            {
+                rock.Init(_gameManager, _poolsManager, _hudManager, _borders);
+            }
 
             var rockExplode = newInstance.GetComponent<RockExplode>();
             if (rockExplode)
             {
+                rockExplode.Init(_gameManager, _poolsManager, _hudManager, _borders);
                 rockExplode.canExplode = false;
                 rockExplode.proportionLeft = proportion;
             }

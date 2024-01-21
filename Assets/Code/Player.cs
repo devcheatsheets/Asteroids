@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using Asteroids.Scriptable;
 using Asteroids.Utility;
 using UnityEngine;
@@ -14,7 +15,7 @@ namespace Asteroids
     [RequireComponent(typeof(Rotateable))]
     [RequireComponent(typeof(Shooter))]
     [RequireComponent(typeof(PolygonCollider2D))]
-    public class Player : Singleton<Player>
+    public class Player : MonoBehaviour
     {
         #region EssentialComponents
         public Hittable hittable
@@ -123,7 +124,7 @@ namespace Asteroids
         #endregion
 
         /// <summary>
-        /// Indicates whether the player is fully reset and can collidewith other objects
+        /// Indicates whether the player is fully reset and can collide with other objects
         /// </summary>
         /// <value></value>
         public bool playerAttackable 
@@ -133,11 +134,18 @@ namespace Asteroids
                 return _playerAttackable;
             }
         }
+
+        private PoolsManager _poolsManager;
+        private HUDManager _hudManager;
+        private Borders _borders;
+        private LogManager _logManager;
         
         #region Private
 
         private Coroutine _powerUpCoroutine;
         private bool _playerAttackable = true;
+
+        private GamePreset _gamePreset;
 
         #endregion
         
@@ -151,24 +159,43 @@ namespace Asteroids
         private GameObject _gameObject;
         private Transform _transform;
         #endregion
+
+        public Action onLivesEqualsZero;
+
+        public void Init(PoolsManager poolsManager, HUDManager hudManager, Borders borders, LogManager logManager, GameManager gameManager)
+        {
+            _poolsManager = poolsManager;
+            _hudManager = hudManager;
+            _borders = borders;
+            _logManager = logManager;
+
+            gameManager.onResetAll += ResetPlayerStats;
+            gameManager.onResetAll += hittable.ResetLives;
+
+            hittable.Init(_hudManager);
+            movable.Init(_borders);
+            shooter.Init(_poolsManager, _borders, _logManager);
+
+            _gamePreset = gameManager.gamePreset;
+        }
         
         /// <summary>
         /// Executed when hittable gets lives reduced. Added to the component's callback 
         /// </summary>
         private void OnLivesReduced()
         {
-            var explosion = PoolManager.GetPoolManager("PlayerExplosions").RequestInstance<Transform>();
+            var explosion = _poolsManager.GetPoolManager("PlayerExplosions").RequestInstance<Transform>();
             explosion.position = transform.position;
-            HUDManager.Instance.DisplayLives(hittable.currentLives);
+            _hudManager.DisplayLives(hittable.currentLives);
             ResetPlayer();
         }
 
         /// <summary>
         /// Executed when hittable lives are equal to zero. Added to the component's callback 
         /// </summary>
-        private void OnLivesEqualsZero()
+        private void Hittable_OnLivesEqualsZero()
         {
-            GameManager.Instance.SetGameState(GameState.GameOver);;
+            onLivesEqualsZero?.Invoke();
         }
 
         #region PowerUps
@@ -180,7 +207,7 @@ namespace Asteroids
         public void ApplyPowerUp(PowerUpEffect powerUp)
         {
             _powerUpCoroutine = StartCoroutine(ApplyPowerUpEnum(powerUp));
-            HUDManager.Instance.DisplayMessage(powerUp.name);
+            _hudManager.DisplayMessage(powerUp.name);
         }
 
         /// <summary>
@@ -208,8 +235,8 @@ namespace Asteroids
             
             yield return new WaitForSeconds(powerUp.effectTime);
 
-            movable.speed = Mathf.Max(movable.speed - powerUp.playerMotionSpeedBoost, GameManager.Instance.gamePreset.motionSpeed);
-            rotateable.rotationSpeed  = Mathf.Max(rotateable.rotationSpeed - powerUp.playerRotationSpeedBoost, GameManager.Instance.gamePreset.rotationSpeed);
+            movable.speed = Mathf.Max(movable.speed - powerUp.playerMotionSpeedBoost, _gamePreset.motionSpeed);
+            rotateable.rotationSpeed  = Mathf.Max(rotateable.rotationSpeed - powerUp.playerRotationSpeedBoost, _gamePreset.rotationSpeed);
             shooter.scatterAmount += scatterAmountDelta;
             shooter.projectileLifeTime -= powerUp.projectilesLifeTimeBoost;
             shooter.delay += powerUp.shootFrequencyBoost;
@@ -226,7 +253,7 @@ namespace Asteroids
             ResetPlayerStats();
             _playerAttackable = false;
             transform.position = Vector3.zero;
-            StartCoroutine(ResetPlayerEnum(GameManager.Instance.gamePreset.playerResetTime));
+            StartCoroutine(ResetPlayerEnum(_gamePreset.playerResetTime));
         }
 
         /// <summary>
@@ -261,16 +288,14 @@ namespace Asteroids
             {
                 StopCoroutine(_powerUpCoroutine);
             }
-
-            var gamePreset = GameManager.Instance.gamePreset;
             
-            hittable.lives = gamePreset.playerLives;
-            movable.speed = gamePreset.motionSpeed;
-            rotateable.rotationSpeed = gamePreset.rotationSpeed;
-            shooter.scatterAmount = gamePreset.shootScatterAmount;
-            shooter.projectileLifeTime = gamePreset.projectilesLifeTime;
-            shooter.delay = gamePreset.shootFrequency;
-            Time.timeScale = gamePreset.timeScale;
+            hittable.lives = _gamePreset.playerLives;
+            movable.speed = _gamePreset.motionSpeed;
+            rotateable.rotationSpeed = _gamePreset.rotationSpeed;
+            shooter.scatterAmount = _gamePreset.shootScatterAmount;
+            shooter.projectileLifeTime = _gamePreset.projectilesLifeTime;
+            shooter.delay = _gamePreset.shootFrequency;
+            Time.timeScale = _gamePreset.timeScale;
         }
 
         #region Unity Callbacks
@@ -278,19 +303,13 @@ namespace Asteroids
         void OnEnable()
         {
             hittable.onLivesReduced += OnLivesReduced;
-            hittable.onLivesEqualsZero += OnLivesEqualsZero;
+            hittable.onLivesEqualsZero += Hittable_OnLivesEqualsZero;
         }
 
         void OnDisable()
         {
             hittable.onLivesReduced -= OnLivesReduced;
-            hittable.onLivesEqualsZero -= OnLivesEqualsZero;
-        }
-
-        private void Start()
-        {
-            AsteroidsEvents.onResetAll += ResetPlayerStats;
-            AsteroidsEvents.onResetAll += hittable.ResetLives;
+            hittable.onLivesEqualsZero -= Hittable_OnLivesEqualsZero;
         }
 
         #endregion

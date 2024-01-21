@@ -7,6 +7,19 @@ namespace Asteroids
     /// </summary>
     public class GameAsteroidsState : AsteroidsState
     {
+        private HUDManager _hudManager;
+        private Player _player;
+        private SpawnManager _spawnManager;
+        private GameManager _gameManager;
+
+        public void Init(HUDManager hudManager, Player player, SpawnManager spawnManager, GameManager gameManager)
+        {
+            _hudManager = hudManager;
+            _player = player;
+            _spawnManager = spawnManager;
+            _gameManager = gameManager;
+        }
+
         public GameAsteroidsState()
         {
             gameState = GameState.Game;
@@ -19,17 +32,17 @@ namespace Asteroids
 
         public override void InitState()
         {
-            HUDManager.Instance.ToggleContainer(gameState);
+            _hudManager.ToggleContainer(gameState);
 
-            Player.Instance.gameObject.SetActive(true);
-            SpawnManager.Instance.enabled = true;
+            _player.gameObject.SetActive(true);
+            _spawnManager.enabled = true;
         }
 
         public override void StateUpdate()
         {
             if(Input.GetKeyDown(KeyCode.Escape))
             {
-                GameManager.Instance.SetGameState(GameState.Pause);
+                _gameManager.SetGameState(GameState.Pause);
             }
         }
     }

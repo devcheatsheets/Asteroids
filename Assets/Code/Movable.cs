@@ -43,6 +43,7 @@ namespace Asteroids
 
         private bool _immuneToBorderControl = false;
         private Vector2 _moveDirection;
+        private Borders _borders;
 
         #endregion
         
@@ -52,6 +53,11 @@ namespace Asteroids
         private Rigidbody2D _rigidbody;
 
         #endregion
+
+        public void Init(Borders borders)
+        {
+            _borders = borders;
+        }
 
         /// <summary>
         /// Use rigidbody add force to push the object towards viewport center
@@ -92,7 +98,7 @@ namespace Asteroids
         private void BordersControl()
         {
             if(_immuneToBorderControl) return;
-            if(Borders.Instance.WithinBorders(transform.position, bordersOffset)) return;
+            if(_borders.WithinBorders(transform.position, bordersOffset)) return;
             switch(bordersBehaviour)
             {
                 case BordersBehaviour.Disable:
@@ -102,7 +108,7 @@ namespace Asteroids
                 }
                 case BordersBehaviour.MoveToOppositePoint:
                 {
-                    transform.position = Borders.Instance.OppositePosition(transform.position, bordersOffset);
+                    transform.position = _borders.OppositePosition(transform.position, bordersOffset);
                     break;
                 }
             }
@@ -148,6 +154,9 @@ namespace Asteroids
         // Update is called once per frame
         void Update()
         {
+            if(!_borders)
+                return;
+                
             switch (motionMode)
             {
                 case MotionMode.Automatic:

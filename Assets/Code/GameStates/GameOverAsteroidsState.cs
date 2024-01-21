@@ -7,6 +7,21 @@ namespace Asteroids
     /// </summary>
     public class GameOverAsteroidsState : AsteroidsState
     {
+        private HUDManager _hudManager;
+        private Player _player;
+        private SpawnManager _spawnManager;
+        private GameManager _gameManager;
+        private PoolsManager _poolsManager;
+
+        public void Init(HUDManager hudManager, Player player, SpawnManager spawnManager, GameManager gameManager, PoolsManager poolsManager)
+        {
+            _hudManager = hudManager;
+            _player = player;
+            _spawnManager = spawnManager;
+            _gameManager = gameManager;
+            _poolsManager = poolsManager;
+        }
+
         public GameOverAsteroidsState()
         {
             gameState = GameState.GameOver;
@@ -14,40 +29,39 @@ namespace Asteroids
         
         public override void ClearState()
         {
-            GameManager.Instance.StopAllCoroutines();
+            _gameManager.StopAllCoroutines();
 
-            Player.Instance.gameObject.SetActive(false);
-            Player.Instance.transform.position = Vector2.zero;
-            Player.Instance.displayable.meshRenderer.enabled = true;
-            Player.Instance.collider.enabled = true;
+            _player.gameObject.SetActive(false);
+            _player.transform.position = Vector2.zero;
+            _player.displayable.meshRenderer.enabled = true;
+            _player.collider.enabled = true;
 
-            SpawnManager.Instance.enabled = false;
-            SpawnManager.Instance.spawnFrequency = GameManager.Instance.gamePreset.startSpawnFrequency;
+            _spawnManager.enabled = false;
+            _spawnManager.spawnFrequency = _gameManager.gamePreset.startSpawnFrequency;
 
-            PoolManager.DisableAllPools();
+            _poolsManager.DisableAllPools();
             
-            if(AsteroidsEvents.onResetAll != null)
-                AsteroidsEvents.onResetAll();
+            _gameManager.ResetAll();
         }
 
         public override void InitState()
         {
-            HUDManager.Instance.ToggleContainer(gameState);
-            HUDManager.Instance.DisplayGameOverStats();
+            _hudManager.ToggleContainer(gameState);
+            _hudManager.DisplayGameOverStats();
 
-            Player.Instance.gameObject.SetActive(false);
-            SpawnManager.Instance.enabled = false;
+            _player.gameObject.SetActive(false);
+            _spawnManager.enabled = false;
         }
 
         public override void StateUpdate()
         {
             if(Input.GetKeyDown(KeyCode.Escape))
             {
-                GameManager.Instance.SetGameState(GameState.PreGame);
+                _gameManager.SetGameState(GameState.PreGame);
             }
             if(Input.anyKeyDown && !Input.GetKeyDown(KeyCode.Escape))
             {
-                GameManager.Instance.SetGameState(GameState.Game);
+                _gameManager.SetGameState(GameState.Game);
             }
         }
     }

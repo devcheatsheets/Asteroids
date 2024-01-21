@@ -32,6 +32,10 @@ namespace Asteroids.Misc
         [Space]
         public float onSpawnBorderImmunityTime = 3f;
 
+        private Player _player;
+        private GamePreset _gamePreset;
+        private LogManager _logManager;
+
         #region Private
         private float _curDistanceToPlayer = float.MaxValue;
         #endregion
@@ -40,11 +44,19 @@ namespace Asteroids.Misc
         private Movable _movable;
         #endregion
 
+        public void Init(Player player, GamePreset gamePreset, LogManager logManager, Borders borders)
+        {
+            _player = player;
+            _gamePreset = gamePreset;
+            _logManager = logManager;
+            movable.Init(borders);
+        }
+
         public void OnSpawned()
         {
             if (effects.Count == 0)
             {
-                if (GameManager.Instance.Log(LogLevel.ErrorsAndWarnings))
+                if (_logManager.Log(LogLevel.ErrorsAndWarnings))
                 {
                     Debug.LogWarning("No effects to choose from", gameObject);
                 }
@@ -53,22 +65,22 @@ namespace Asteroids.Misc
             _chosenEffect = effects.Count == 1 ? effects[0] : effects[Random.Range(0, effects.Count)];
             
             movable.MakeImmuneToBorderControl(onSpawnBorderImmunityTime);
-            movable.AddForceTowardsCenter(GameManager.Instance.gamePreset.spawnedCenterTargetOffset);
+            movable.AddForceTowardsCenter(_gamePreset.spawnedCenterTargetOffset);
         }
 
         public void OnExplode()
         {
-            throw new System.NotImplementedException();
+            
         }
 
         #region Unity Callbacks
 
         private void Update() 
         {
-            _curDistanceToPlayer = Vector2.Distance(Player.Instance.transform.position, transform.position);
+            _curDistanceToPlayer = Vector2.Distance(_player.transform.position, transform.position);
             if(_curDistanceToPlayer <= pickRange)
             {
-                Player.Instance.ApplyPowerUp(_chosenEffect);
+                _player.ApplyPowerUp(_chosenEffect);
                 gameObject.SetActive(false);
             }
         }

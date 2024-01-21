@@ -34,6 +34,19 @@ namespace Asteroids
                 return _displayable;
             }
         }
+
+        public Movable movable
+        {
+            get
+            {
+                if(_movable)
+                {
+                    return _movable;
+                }
+                _movable = GetComponent<Movable>();
+                return _movable;
+            }
+        }
         
         private int _damage;
         private Shooter _shooter;
@@ -41,6 +54,7 @@ namespace Asteroids
         private float _speed = 0.1f;
 
         private Displayable _displayable;
+        private Movable _movable;
         
         /// <summary>
         /// Change colour based on the shooter's settings
@@ -55,7 +69,7 @@ namespace Asteroids
         /// Initialize the projectile's settings based on a shooter who cast the object
         /// </summary>
         /// <param name="shooter">Shooter that casted the projectile</param>
-        public void InitShooter(Shooter shooter)
+        public void InitShooter(Shooter shooter, Borders borders)
         {
             this._shooter = shooter;
             transform.position = shooter.shootPosition.position;
@@ -69,6 +83,8 @@ namespace Asteroids
             _lifeTime = shooter.projectileLifeTime;
             
             ChangeColor();
+
+            movable.Init(borders);
 
             gameObject.SetActive(true);
         }
